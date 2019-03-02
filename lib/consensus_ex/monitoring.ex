@@ -3,6 +3,7 @@
 
   @self __MODULE__
   @refresh_time 4_000
+  @recipient :"bar@retinas-MacBook-Pro"
 
   def start_link(default) when is_list(default) do
     GenServer.start_link(@self, default)
@@ -17,7 +18,7 @@
 
   def handle_info(:refresh, state) do
     schedule_refresh()
-    ConsensusEx.ping(:"bar@retinas-MacBook-Pro")
+    ConsensusEx.ping(@recipient)
     {:noreply, state}
   end
 
