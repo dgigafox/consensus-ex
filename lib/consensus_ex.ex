@@ -6,33 +6,35 @@ defmodule ConsensusEx do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
+  @timeout 4_000
 
-  use GenServer
-
-  def start_link(default) when is_list(default) do
-    GenServer.start_link(__MODULE__, default)
+  def receive("PING") do
+    "PONG"
   end
 
-  def pop(pid) do
-    GenServer.call(pid, :pop)
+  def ping(recipient) do
+    IO.puts("SENDING PING...")
+    spawn_task(__MODULE__, :receive, recipient, ["PING"])
   end
 
-  # Server
-
-  def init(initial_param) do
-    send(:"foo@iMac-2", {:pop, [:hi]})
-    {:ok, initial_param}
+  def spawn_task(module, fun, recipient, args) do
+    recipient
+    |> remote_supervisor()
+    |> execute_async_task(module, fun, args)
+    |> case do
+      nil -> nil
+      task -> Task.yield(task, @timeout * 4)
+    end
+    |> IO.inspect(label: "TASK")
   end
 
-  def handle_call(:pop, from, [head | tail]) do
-    IO.inspect(from)
-    IO.inspect(head)
-    IO.inspect(tail)
-    {:reply, head, tail}
+  defp remote_supervisor(recipient) do
+    {ConsensusEx.TaskSupervisor, recipient}
   end
 
-  def handle_info(message, state) do
-    IO.inspect(message)
-    {:noreply, state}
+  defp execute_async_task(sup, module, fun, args) do
+    Task.Supervisor.async_nolink(sup, module, fun, args)
+  catch
+    :exit, _ -> nil
   end
 end
