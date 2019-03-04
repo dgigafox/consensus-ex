@@ -6,6 +6,8 @@ defmodule ConsensusEx do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
+  alias ConsensusEx.Election
+
   @timeout 4_000
 
   def receive("PING") do
@@ -19,9 +21,11 @@ defmodule ConsensusEx do
     #   false -> "FINETHANKS"
     # end
     IO.puts("FINETHANKS")
+    "FINETHANKS"
   end
 
   def send_message(recipient, msg) do
+    IO.inspect({recipient, msg}, label: "SENDING")
     IO.puts("SENDING MESSAGE")
     spawn_task(__MODULE__, :receive, recipient, [msg])
   end
@@ -34,12 +38,20 @@ defmodule ConsensusEx do
       nil -> nil
       task -> Task.yield(task, @timeout * 4)
     end
+    |> IO.inspect(label: "YIELD_RESP")
     |> evaluate_response(recipient, hd(args))
+  end
+
+  def broadcast(recipients, msg) when is_list(recipients) do
+    recipients
+    |> Enum.map(fn {k, _v} -> String.to_atom(Election.get_full_node_name(k)) end)
+    |> Enum.map(&send_message(&1, msg))
   end
 
   defp evaluate_response(nil, _recipient, "ALIVE?"), do: IO.puts("START ELECTION")
 
   defp evaluate_response(nil, recipient, "PING") do
+    Election.start_election(Node.self())
     send_message(recipient, "ALIVE?")
   end
 
