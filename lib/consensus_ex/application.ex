@@ -13,7 +13,7 @@ defmodule ConsensusEx.Application do
       {Task.Supervisor, name: ConsensusEx.TaskSupervisor},
       # Start your own worker by calling: ConsensusEx.Worker.start_link(arg1, arg2, arg3)
       # worker(ConsensusEx.Worker, [arg1, arg2, arg3]),
-      {ConsensusEx.Monitoring, [:hello]}
+      {ConsensusEx.Monitoring, %{}}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

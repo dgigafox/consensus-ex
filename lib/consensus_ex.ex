@@ -12,9 +12,18 @@ defmodule ConsensusEx do
     "PONG"
   end
 
-  def ping(recipient) do
-    IO.puts("SENDING PING...")
-    spawn_task(__MODULE__, :receive, recipient, ["PING"])
+  def receive("ALIVE?") do
+    # TODO: who_is_the_leader function
+    # case do who_is_the_leader() do
+    #   true -> "IAMTHEKING"
+    #   false -> "FINETHANKS"
+    # end
+    IO.puts("FINETHANKS")
+  end
+
+  def send_message(recipient, msg) do
+    IO.puts("SENDING MESSAGE")
+    spawn_task(__MODULE__, :receive, recipient, [msg])
   end
 
   def spawn_task(module, fun, recipient, args) do
@@ -25,8 +34,16 @@ defmodule ConsensusEx do
       nil -> nil
       task -> Task.yield(task, @timeout * 4)
     end
-    |> IO.inspect(label: "TASK")
+    |> evaluate_response(recipient, hd(args))
   end
+
+  defp evaluate_response(nil, _recipient, "ALIVE?"), do: IO.puts("START ELECTION")
+
+  defp evaluate_response(nil, recipient, "PING") do
+    send_message(recipient, "ALIVE?")
+  end
+
+  defp evaluate_response(resp, _, _), do: resp
 
   defp remote_supervisor(recipient) do
     {ConsensusEx.TaskSupervisor, recipient}
