@@ -16,19 +16,13 @@ defmodule ConsensusEx do
   end
 
   def receive("ALIVE?") do
-    # TODO: who_is_the_leader function
-    # case do who_is_the_leader() do
-    #   true -> "IAMTHEKING"
-    #   false -> "FINETHANKS"
-    # end
-    :timer.sleep(5_000)
+    Election.start_election(Node.self())
     "FINETHANKS"
   end
 
   def receive({node, "IAMTHEKING"}) do
     Monitoring.update_leader(node)
     IO.inspect(node, label: "IAMTHEKING_NODE")
-    IO.puts("IAMTHEKING")
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do

@@ -63,8 +63,4 @@ defmodule ConsensusEx.Election do
     Enum.filter(peers, fn {_k, v} -> v > id end)
     |> IO.inspect(label: "HIGHER_IDS")
   end
-
-  def who_is_the_leader?() do
-    # get the highest ID among peers
-  end
 end
