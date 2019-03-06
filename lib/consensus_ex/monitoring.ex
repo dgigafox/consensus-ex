@@ -3,22 +3,13 @@ defmodule ConsensusEx.Monitoring do
 
   @self __MODULE__
   @refresh_time 4_000
-  @recipient :"bar@consensus.ex"
+  # @recipient :"bar@consensus.ex"
   @timeout 4_000
 
   @spec start_link(map()) :: :ignore | {:error, any()} | {:ok, pid()}
   def start_link(default) when is_map(default) do
-    default = Map.put(default, :leader, @recipient)
+    # default = Map.put(default, :leader, nil)
     GenServer.start_link(__MODULE__, default, name: @self)
-  end
-
-  def get_leader() do
-    GenServer.call(@self, {:get_leader})
-  end
-
-  def update_leader(node) do
-    GenServer.cast(@self, {:update, node})
-    |> IO.inspect(label: "CAST_RESP")
   end
 
   # Server
@@ -30,23 +21,9 @@ defmodule ConsensusEx.Monitoring do
     {:ok, init_data}
   end
 
-  def handle_call({:get_leader}, _from, state) do
-    {:reply, state, state}
-  end
-
-  def handle_cast({:update, node}, state) do
-    state = %{state | leader: node}
-    IO.inspect(state, label: "NEW_STATE")
-    {:noreply, state}
-  end
-
   def handle_info(:send_message, state) do
-    # schedule_message()
-    response = ConsensusEx.send_message(state.leader, "PING", @timeout * 4)
-
-    with {:ok, "PONG"} <- response do
-      schedule_message()
-    end
+    schedule_message()
+    ConsensusEx.send_message(state.leader, "PING", @timeout * 4)
 
     {:noreply, state}
   end
@@ -54,6 +31,10 @@ defmodule ConsensusEx.Monitoring do
   def handle_info({_ref, "FINETHANKS"}, state) do
     Process.exit(self(), :normal)
     {:noreply, state}
+  end
+
+  def handle_info(:kill, state) do
+    {:stop, :normal, state}
   end
 
   defp schedule_message do

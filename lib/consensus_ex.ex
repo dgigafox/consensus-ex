@@ -7,7 +7,11 @@ defmodule ConsensusEx do
   if it comes from the database, an external API or others.
   """
   alias ConsensusEx.Election
+  alias ConsensusEx.ElectionProcessor
+  alias ConsensusEx.EventHandler
+  alias ConsensusEx.LeaderRegistry
   alias ConsensusEx.Monitoring
+  alias ConsensusEx.ProcessRegistry
 
   @timeout 4_000
 
@@ -16,13 +20,20 @@ defmodule ConsensusEx do
   end
 
   def receive("ALIVE?") do
-    Election.start_election(Node.self())
+    {:ok, _pid} = ElectionProcessor.start_link([Node.self()])
     "FINETHANKS"
   end
 
   def receive({node, "IAMTHEKING"}) do
-    Monitoring.update_leader(node)
-    IO.inspect(node, label: "IAMTHEKING_NODE")
+    pid = ProcessRegistry.get_pid(EventHandler)
+
+    if Process.alive?(pid) do
+      LeaderRegistry.update_leader(node)
+      EventHandler.stop(pid)
+
+      leader = LeaderRegistry.get_leader()
+      {:ok, _pid} = Monitoring.start_link(%{leader: leader})
+    end
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do
@@ -35,12 +46,12 @@ defmodule ConsensusEx do
     recipient
     |> remote_supervisor()
     |> execute_async_task(module, fun, args)
+    |> IO.inspect(label: "YIELD_RESP")
     |> case do
       nil -> nil
       task -> Task.yield(task, timeout)
     end
-    |> IO.inspect(label: "YIELD_RESP")
-    |> evaluate_response(recipient, hd(args))
+    |> handle_response(recipient, hd(args))
   end
 
   def broadcast(recipients, msg) when is_list(recipients) do
@@ -49,14 +60,19 @@ defmodule ConsensusEx do
     |> Enum.map(&send_message(&1, msg))
   end
 
-  defp evaluate_response(nil, _recipient, "ALIVE?"), do: nil
+  defp handle_response({:exit, _}, recipient, msg) do
+    handle_response(nil, recipient, msg)
+  end
 
-  defp evaluate_response(nil, _recipient, "PING") do
-    Election.start_election(Node.self())
+  defp handle_response(nil, _recipient, "ALIVE?"), do: nil
+
+  defp handle_response(nil, _recipient, "PING") do
+    ProcessRegistry.stop_and_remove(Monitoring)
+    {:ok, _pid} = ElectionProcessor.start_link([Node.self()])
     IO.puts("START_ELECTION")
   end
 
-  defp evaluate_response(resp, _, _), do: resp
+  defp handle_response(resp, _, _), do: resp
 
   defp remote_supervisor(recipient) do
     {ConsensusEx.TaskSupervisor, recipient}
