@@ -1,11 +1,18 @@
 defmodule ConsensusEx.Election do
   @moduledoc false
 
+  alias ConsensusEx.ElectionProcessor
   alias ConsensusEx.EventHandler
   alias ConsensusEx.Monitoring
   alias ConsensusEx.ProcessRegistry
 
+  @timeout 4_000
+
   def start_election(node) do
+    # Listen to iamtheking message
+    EventHandler.listen()
+    IO.inspect(EventHandler.get_state(), label: "INIT_EVENT_HANDLER_STATE")
+
     # send Alive to all higher id peers
     node
     |> get_higher_id_peers()
@@ -26,14 +33,16 @@ defmodule ConsensusEx.Election do
   end
 
   def wait_for_iamtheking do
-    {:ok, pid} = EventHandler.start_link()
-    :timer.sleep(4_000)
-    EventHandler.stop(pid)
+    pid = ProcessRegistry.get_pid(EventHandler)
+    Process.send_after(pid, :unlisten, @timeout)
 
-    pid = ProcessRegistry.get_pid(Monitoring)
+    :timer.apply_after(@timeout, __MODULE__, :is_monitoring_running, [])
+  end
 
-    unless Process.alive?(pid) do
-      start_election(Node.self())
+  def is_monitoring_running?() do
+    case Monitoring.get_state() do
+      :running -> :ok
+      :stopped -> send(ElectionProcessor, {:run_election, Node.self()})
     end
   end
 

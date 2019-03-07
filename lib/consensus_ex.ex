@@ -9,9 +9,7 @@ defmodule ConsensusEx do
   alias ConsensusEx.Election
   alias ConsensusEx.ElectionProcessor
   alias ConsensusEx.EventHandler
-  alias ConsensusEx.LeaderRegistry
   alias ConsensusEx.Monitoring
-  alias ConsensusEx.ProcessRegistry
 
   @timeout 4_000
 
@@ -20,20 +18,12 @@ defmodule ConsensusEx do
   end
 
   def receive("ALIVE?") do
-    {:ok, _pid} = ElectionProcessor.start_link([Node.self()])
+    send(ElectionProcessor, {:run_election, Node.self()})
     "FINETHANKS"
   end
 
   def receive({node, "IAMTHEKING"}) do
-    pid = ProcessRegistry.get_pid(EventHandler)
-
-    if Process.alive?(pid) do
-      LeaderRegistry.update_leader(node)
-      EventHandler.stop(pid)
-
-      leader = LeaderRegistry.get_leader()
-      {:ok, _pid} = Monitoring.start_link(%{leader: leader})
-    end
+    EventHandler.receive({:receive, node})
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do
@@ -67,8 +57,8 @@ defmodule ConsensusEx do
   defp handle_response(nil, _recipient, "ALIVE?"), do: nil
 
   defp handle_response(nil, _recipient, "PING") do
-    ProcessRegistry.stop_and_remove(Monitoring)
-    {:ok, _pid} = ElectionProcessor.start_link([Node.self()])
+    Monitoring.stop()
+    Election.start_election(Node.self())
     IO.puts("START_ELECTION")
   end
 

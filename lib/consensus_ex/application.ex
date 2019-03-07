@@ -14,8 +14,10 @@ defmodule ConsensusEx.Application do
       # Start your own worker by calling: ConsensusEx.Worker.start_link(arg1, arg2, arg3)
       # worker(ConsensusEx.Worker, [arg1, arg2, arg3]),
       # {ConsensusEx.Monitoring, %{}},
+      worker(ConsensusEx.EventHandler, [%{}]),
       worker(ConsensusEx.LeaderRegistry, []),
-      worker(ConsensusEx.ElectionProcessor, [Node.self()], restart: :transient)
+      worker(ConsensusEx.ElectionProcessor, [Node.self()], restart: :transient),
+      worker(ConsensusEx.Monitoring, [%{}])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
