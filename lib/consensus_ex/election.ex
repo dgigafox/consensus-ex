@@ -1,9 +1,11 @@
 defmodule ConsensusEx.Election do
-  @moduledoc false
+  @moduledoc """
+  Election related functions that defines the election procedure
+  """
 
   import ConsensusEx.Helpers.DistributedSystems
 
-  alias ConsensusEx.EventHandler
+  alias ConsensusEx.EventProcessor
   alias ConsensusEx.ProcessRegistry
 
   @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
@@ -11,7 +13,6 @@ defmodule ConsensusEx.Election do
   def start_election(node) do
     IO.puts("STARTED_ELECTION")
 
-    # send Alive to all higher id peers
     node
     |> get_higher_id_peers()
     |> case do
@@ -31,8 +32,8 @@ defmodule ConsensusEx.Election do
   end
 
   def wait_for_iamtheking do
-    EventHandler.listen()
-    pid = ProcessRegistry.get_pid(EventHandler)
+    EventProcessor.listen()
+    pid = ProcessRegistry.get_pid(EventProcessor)
     Process.send_after(pid, :unlisten, @timeout)
   end
 

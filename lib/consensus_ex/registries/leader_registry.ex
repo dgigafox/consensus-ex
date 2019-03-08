@@ -1,7 +1,7 @@
 defmodule ConsensusEx.LeaderRegistry do
   use Agent
 
-  alias ConsensusEx.EventHandler
+  alias ConsensusEx.EventProcessor
 
   @self __MODULE__
 
@@ -15,6 +15,6 @@ defmodule ConsensusEx.LeaderRegistry do
 
   def update_leader(leader) do
     Agent.update(@self, &Map.put(&1, :leader, leader))
-    EventHandler.listen()
+    EventProcessor.listen()
   end
 end
