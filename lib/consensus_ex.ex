@@ -13,7 +13,8 @@ defmodule ConsensusEx do
   alias ConsensusEx.EventHandler
   alias ConsensusEx.Monitoring
 
-  @timeout 4_000
+  @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
+  @self __MODULE__
 
   def receive("PING") do
     "PONG"
@@ -29,7 +30,7 @@ defmodule ConsensusEx do
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do
-    spawn_task(__MODULE__, :receive, recipient, [msg], timeout)
+    spawn_task(@self, :receive, recipient, [msg], timeout)
   end
 
   def spawn_task(module, fun, recipient, args, timeout) do
@@ -43,7 +44,7 @@ defmodule ConsensusEx do
     |> handle_response(recipient, hd(args))
   end
 
-  def broadcast(recipients, msg) when is_list(recipients) do
+  def broadcast_message(recipients, msg) when is_list(recipients) do
     recipients
     |> Enum.map(fn {k, _v} -> String.to_atom(get_full_node_name(k)) end)
     |> Enum.map(&send_message(&1, msg))

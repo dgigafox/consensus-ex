@@ -6,7 +6,7 @@ defmodule ConsensusEx.Election do
   alias ConsensusEx.EventHandler
   alias ConsensusEx.ProcessRegistry
 
-  @timeout 4_000
+  @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
 
   def start_election(node) do
     IO.puts("STARTED_ELECTION")
@@ -22,7 +22,7 @@ defmodule ConsensusEx.Election do
 
   def multicast_alive(sending_node, receiving_nodes) when is_list(receiving_nodes) do
     receiving_nodes
-    |> ConsensusEx.broadcast("ALIVE?")
+    |> ConsensusEx.broadcast_message("ALIVE?")
     |> Enum.any?(&(&1 == {:ok, "FINETHANKS"}))
     |> case do
       false -> broadcast_iamtheking(sending_node)
@@ -38,6 +38,6 @@ defmodule ConsensusEx.Election do
 
   def broadcast_iamtheking(node) do
     {:ok, peers} = get_connected_peers(get_hostname(node))
-    ConsensusEx.broadcast(peers, {node, "IAMTHEKING"})
+    ConsensusEx.broadcast_message(peers, {node, "IAMTHEKING"})
   end
 end
