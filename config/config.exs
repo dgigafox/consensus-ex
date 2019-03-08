@@ -10,14 +10,16 @@ config :consensus_ex, ConsensusExWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "tlZ1VKEHg8Nq0ys8G8X5kdoO/Rqbwn3SU4YkeRiLp4UrcOiX/Wle8HHV4m1jc1mP",
   render_errors: [view: ConsensusExWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: ConsensusEx.PubSub,
-           adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: ConsensusEx.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
+# Configures settings
+config :consensus_ex, :settings, timeout: 3_000
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
-import_config "#{Mix.env}.exs"
+import_config "#{Mix.env()}.exs"

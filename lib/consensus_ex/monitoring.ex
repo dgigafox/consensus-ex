@@ -4,9 +4,9 @@ defmodule ConsensusEx.Monitoring do
   alias ConsensusEx.LeaderRegistry
 
   @self __MODULE__
-  @refresh_time 4_000
-  # @recipient :"bar@consensus.ex"
-  @timeout 4_000
+
+  @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
+  @refresh_time @timeout
 
   @spec start_link(map()) :: :ignore | {:error, any()} | {:ok, pid()}
   def start_link(default) when is_map(default) do
@@ -26,8 +26,6 @@ defmodule ConsensusEx.Monitoring do
   def stop() do
     send(@self, :stop)
   end
-
-  # Server
 
   def init(init_data) do
     {:ok, init_data}
