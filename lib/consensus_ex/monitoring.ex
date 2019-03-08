@@ -11,6 +11,7 @@ defmodule ConsensusEx.Monitoring do
   @spec start_link(map()) :: :ignore | {:error, any()} | {:ok, pid()}
   def start_link(default) when is_map(default) do
     default = Map.merge(default, %{state: :stopped, timer_ref: nil})
+
     GenServer.start_link(__MODULE__, default, name: @self)
   end
 
@@ -43,7 +44,6 @@ defmodule ConsensusEx.Monitoring do
     ConsensusEx.send_message(leader, "PING", @timeout * 4)
 
     state = %{state | state: :running, timer_ref: timer_ref}
-    IO.inspect(state, label: "STATE")
     {:noreply, state}
   end
 
@@ -54,7 +54,7 @@ defmodule ConsensusEx.Monitoring do
 
   def handle_info(:stop, state) do
     :timer.cancel(state.timer_ref)
-    {:stop, :normal, %{state | state: :stopped}}
+    {:noreply, %{state | state: :stopped}}
   end
 
   defp schedule_message do

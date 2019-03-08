@@ -1,6 +1,8 @@
 defmodule ConsensusEx.ElectionProcessor do
   use GenServer
 
+  import ConsensusEx.Helpers.DistributedSystems
+
   alias ConsensusEx.Election
 
   @self __MODULE__
@@ -10,7 +12,14 @@ defmodule ConsensusEx.ElectionProcessor do
   end
 
   def init(node) do
-    send(self(), {:run_election, node})
+    hostname = get_hostname(node)
+    {:ok, peers} = get_connected_peers(hostname)
+
+    case length(peers) do
+      1 -> :ok
+      _ -> send(self(), {:run_election, node})
+    end
+
     {:ok, node}
   end
 

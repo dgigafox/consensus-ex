@@ -6,6 +6,8 @@ defmodule ConsensusEx do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
+  import ConsensusEx.Helpers.DistributedSystems
+
   alias ConsensusEx.Election
   alias ConsensusEx.ElectionProcessor
   alias ConsensusEx.EventHandler
@@ -27,8 +29,6 @@ defmodule ConsensusEx do
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do
-    IO.inspect({recipient, msg}, label: "SENDING")
-    IO.puts("SENDING MESSAGE")
     spawn_task(__MODULE__, :receive, recipient, [msg], timeout)
   end
 
@@ -36,7 +36,6 @@ defmodule ConsensusEx do
     recipient
     |> remote_supervisor()
     |> execute_async_task(module, fun, args)
-    |> IO.inspect(label: "YIELD_RESP")
     |> case do
       nil -> nil
       task -> Task.yield(task, timeout)
@@ -46,7 +45,7 @@ defmodule ConsensusEx do
 
   def broadcast(recipients, msg) when is_list(recipients) do
     recipients
-    |> Enum.map(fn {k, _v} -> String.to_atom(Election.get_full_node_name(k)) end)
+    |> Enum.map(fn {k, _v} -> String.to_atom(get_full_node_name(k)) end)
     |> Enum.map(&send_message(&1, msg))
   end
 
@@ -59,7 +58,6 @@ defmodule ConsensusEx do
   defp handle_response(nil, _recipient, "PING") do
     Monitoring.stop()
     Election.start_election(Node.self())
-    IO.puts("START_ELECTION")
   end
 
   defp handle_response(resp, _, _), do: resp

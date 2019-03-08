@@ -1,6 +1,8 @@
 defmodule ConsensusEx.LeaderRegistry do
   use Agent
 
+  alias ConsensusEx.EventHandler
+
   @self __MODULE__
 
   def start_link do
@@ -13,5 +15,6 @@ defmodule ConsensusEx.LeaderRegistry do
 
   def update_leader(leader) do
     Agent.update(@self, &Map.put(&1, :leader, leader))
+    EventHandler.listen()
   end
 end

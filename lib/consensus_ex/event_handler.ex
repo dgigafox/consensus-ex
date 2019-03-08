@@ -1,6 +1,7 @@
 defmodule ConsensusEx.EventHandler do
   use GenServer
 
+  alias ConsensusEx.ElectionProcessor
   alias ConsensusEx.LeaderRegistry
   alias ConsensusEx.Monitoring
 
@@ -23,7 +24,7 @@ defmodule ConsensusEx.EventHandler do
   # end
 
   def start_link(default) when is_map(default) do
-    default = Map.put(default, :listening, false)
+    default = Map.put(default, :listening, true)
     GenServer.start_link(@self, default, name: @self)
   end
 
@@ -48,12 +49,18 @@ defmodule ConsensusEx.EventHandler do
   end
 
   def handle_cast({:receive, node}, %{listening: true} = state) do
+    IO.inspect(state, label: "LISTENING_STATE")
     LeaderRegistry.update_leader(node)
     Monitoring.run()
     {:noreply, %{state | listening: false}}
   end
 
-  def handle_cast({:receive, _node}, state) do
+  def handle_cast({:receive, node}, state) do
+    if node == Node.self() do
+      LeaderRegistry.update_leader(node)
+      Monitoring.run()
+    end
+
     {:noreply, state}
   end
 
@@ -62,6 +69,11 @@ defmodule ConsensusEx.EventHandler do
   end
 
   def handle_cast(:unlisten, state) do
+    case Monitoring.get_state() do
+      :running -> :ok
+      :stopped -> send(ElectionProcessor, {:run_election, Node.self()})
+    end
+
     {:noreply, %{state | listening: false}}
   end
 
