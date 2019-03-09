@@ -1,11 +1,12 @@
 defmodule ConsensusEx.Helpers.DistributedSystems do
   @moduledoc """
-  Helpers for any distributed system-related functions
+  Helpers for distributed system-related functions
   """
 
   def get_full_node_name(name) do
     hostname =
-      get_hostname(Node.self())
+      Node.self()
+      |> get_hostname()
       |> Atom.to_string()
 
     name = List.to_string(name)
@@ -38,6 +39,5 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
     {_, id} = List.keyfind(peers, name, 0)
 
     Enum.filter(peers, fn {_k, v} -> v > id end)
-    |> IO.inspect(label: "HIGHER_IDS")
   end
 end

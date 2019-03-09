@@ -20,11 +20,12 @@ defmodule ConsensusEx.Monitoring do
   end
 
   def run() do
-    send(@self, :send_message)
+    leader = LeaderRegistry.get_leader()
+    send(@self, {:send_message, leader})
   end
 
   def stop() do
-    send(@self, :stop)
+    GenServer.cast(@self, :stop)
   end
 
   def init(init_data) do
@@ -35,10 +36,9 @@ defmodule ConsensusEx.Monitoring do
     {:reply, state[:state], state}
   end
 
-  def handle_info(:send_message, state) do
-    timer_ref = schedule_message()
+  def handle_info({:send_message, leader} = msg, state) do
+    timer_ref = schedule_message(msg)
 
-    leader = LeaderRegistry.get_leader()
     ConsensusEx.send_message(leader, "PING", @timeout * 4)
 
     state = %{state | state: :running, timer_ref: timer_ref}
@@ -50,12 +50,12 @@ defmodule ConsensusEx.Monitoring do
     {:noreply, state}
   end
 
-  def handle_info(:stop, state) do
+  def handle_cast(:stop, state) do
     :timer.cancel(state.timer_ref)
     {:noreply, %{state | state: :stopped}}
   end
 
-  defp schedule_message do
-    Process.send_after(self(), :send_message, @refresh_time)
+  defp schedule_message(msg) do
+    Process.send_after(self(), msg, @refresh_time)
   end
 end

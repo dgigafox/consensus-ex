@@ -14,7 +14,7 @@ defmodule ConsensusEx.Application do
       # worker(ConsensusEx.Worker, [arg1, arg2, arg3]),
       # {ConsensusEx.Monitoring, %{}},
       {Task.Supervisor, name: ConsensusEx.TaskSupervisor},
-      worker(ConsensusEx.EventHandler, [%{}]),
+      worker(ConsensusEx.EventProcessor, [%{}]),
       worker(ConsensusEx.LeaderRegistry, []),
       worker(ConsensusEx.ElectionProcessor, [Node.self()], restart: :transient),
       worker(ConsensusEx.Monitoring, [%{}])

@@ -1,4 +1,4 @@
-defmodule ConsensusEx.EventHandler do
+defmodule ConsensusEx.EventProcessor do
   use GenServer
 
   alias ConsensusEx.ElectionProcessor
@@ -32,18 +32,9 @@ defmodule ConsensusEx.EventHandler do
     {:ok, state}
   end
 
-  def handle_cast({:receive, node}, %{listening: true} = state) do
-    IO.inspect(state, label: "LISTENING_STATE")
+  def handle_cast({:receive, node}, state) do
     LeaderRegistry.update_leader(node)
     Monitoring.run()
-    {:noreply, %{state | listening: false}}
-  end
-
-  def handle_cast({:receive, node}, state) do
-    if node == Node.self() do
-      LeaderRegistry.update_leader(node)
-      Monitoring.run()
-    end
 
     {:noreply, state}
   end
@@ -52,7 +43,11 @@ defmodule ConsensusEx.EventHandler do
     {:noreply, %{state | listening: true}}
   end
 
-  def handle_cast(:unlisten, state) do
+  def handle_call(:get_state, _from, state) do
+    {:reply, state.listening, state}
+  end
+
+  def handle_info(:unlisten, state) do
     case Monitoring.get_state() do
       :running -> :ok
       :stopped -> send(ElectionProcessor, {:run_election, Node.self()})
@@ -61,15 +56,7 @@ defmodule ConsensusEx.EventHandler do
     {:noreply, %{state | listening: false}}
   end
 
-  def handle_call(:get_state, _from, state) do
-    {:reply, state.listening, state}
-  end
-
   def handle_info(:kill, state) do
     {:stop, :normal, state}
-  end
-
-  def handle_info(:unlisten, state) do
-    {:noreply, %{state | listening: false}}
   end
 end

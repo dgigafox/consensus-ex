@@ -18,7 +18,7 @@ config :logger, :console,
   metadata: [:user_id]
 
 # Configures settings
-config :consensus_ex, :settings, timeout: 3_000
+config :consensus_ex, :settings, timeout: 4_000
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
