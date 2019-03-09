@@ -22,7 +22,9 @@ defmodule ConsensusEx.ElectionProcessor do
     state = %{node: node}
 
     hostname = get_hostname(state.node)
-    {:ok, peers} = get_connected_peers(hostname)
+    {:ok, peers} = :net_adm.names(hostname)
+
+    IO.inspect(peers, label: "PEERS")
 
     case length(peers) do
       1 -> :ok
