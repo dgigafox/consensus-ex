@@ -8,9 +8,9 @@ defmodule ConsensusEx do
   """
   import ConsensusEx.Messenger
   import ConsensusEx.Helpers.DistributedSystems
+  import ConsensusEx.ProcessRegistry
 
   alias ConsensusEx.ElectionProcessor
-  alias ConsensusEx.EventProcessor
   alias ConsensusEx.Monitoring
 
   @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
@@ -22,13 +22,21 @@ defmodule ConsensusEx do
 
   def receive("ALIVE?") do
     Monitoring.stop()
-    send(ElectionProcessor, {:run_election, Node.self()})
+    start_election_process(Node.self())
     "FINETHANKS"
   end
 
-  def receive({leader, "IAMTHEKING"}) do
+  def receive({leader, "IAMTHEKING", 1}) do
     Monitoring.stop()
-    EventProcessor.receive({:receive, leader})
+    direct_update_leader(leader)
+  end
+
+  def receive({leader, "IAMTHEKING", _}) do
+    IO.inspect(leader, label: "I RECEIVE IAMTHEKING")
+    Monitoring.stop()
+
+    set_leader(leader)
+    |> IO.inspect(label: "SET_LEADER")
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do

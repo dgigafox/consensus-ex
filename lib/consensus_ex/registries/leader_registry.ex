@@ -1,7 +1,6 @@
 defmodule ConsensusEx.LeaderRegistry do
   use Agent
 
-  alias ConsensusEx.EventProcessor
   alias ConsensusEx.Monitoring
 
   @self __MODULE__
