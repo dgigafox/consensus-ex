@@ -32,18 +32,9 @@ defmodule ConsensusEx.EventProcessor do
     {:ok, state}
   end
 
-  def handle_cast({:receive, node}, %{listening: true} = state) do
-    IO.inspect(state, label: "LISTENING_STATE")
+  def handle_cast({:receive, node}, state) do
     LeaderRegistry.update_leader(node)
     Monitoring.run()
-    {:noreply, %{state | listening: false}}
-  end
-
-  def handle_cast({:receive, node}, state) do
-    if node == Node.self() do
-      LeaderRegistry.update_leader(node)
-      Monitoring.run()
-    end
 
     {:noreply, state}
   end

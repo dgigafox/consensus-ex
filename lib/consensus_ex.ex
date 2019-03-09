@@ -11,22 +11,24 @@ defmodule ConsensusEx do
 
   alias ConsensusEx.ElectionProcessor
   alias ConsensusEx.EventProcessor
+  alias ConsensusEx.Monitoring
 
   @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
   @self __MODULE__
 
-  def receive(message) do
-    case message do
-      "PING" ->
-        "PONG"
+  def receive("PING") do
+    "PONG"
+  end
 
-      "ALIVE?" ->
-        send(ElectionProcessor, {:run_election, Node.self()})
-        "FINETHANKS"
+  def receive("ALIVE?") do
+    Monitoring.stop()
+    send(ElectionProcessor, {:run_election, Node.self()})
+    "FINETHANKS"
+  end
 
-      {node, "IAMTHEKING"} ->
-        EventProcessor.receive({:receive, node})
-    end
+  def receive({leader, "IAMTHEKING"}) do
+    Monitoring.stop()
+    EventProcessor.receive({:receive, leader})
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do
