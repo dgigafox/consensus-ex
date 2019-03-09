@@ -16,7 +16,7 @@ defmodule ConsensusEx.ElectionProcessor do
 
   def get_state(), do: GenServer.call(@self, :get_state)
 
-  def set_leader(node), do: GenServer.call(@self, {:receive_iamtheking, node})
+  def set_leader(node), do: GenServer.cast(@self, {:receive_iamtheking, node})
 
   def init(node) do
     state = %{node: node}
@@ -33,18 +33,27 @@ defmodule ConsensusEx.ElectionProcessor do
   end
 
   def handle_call(:get_state, _from, state) do
-    {:reply, state.state, state}
+    {:reply, state, state}
   end
 
-  def handle_call({:receive_iamtheking, leader}, _from, state) do
+  def handle_cast({:receive_iamtheking, leader}, state) do
     IO.inspect(leader, label: "CAST LEADER")
     LeaderRegistry.update_leader(leader)
-    {:noreply, state, state}
+    {:noreply, state}
   end
 
+  @doc """
+  Run election:
+  1. Get election count initialized
+  2. Erase leader
+  3. Start election
+  """
   def handle_info({:run_election, node}, state) do
     ElectionCounterRegistry.increment()
     count = ElectionCounterRegistry.get()
+
+    LeaderRegistry.update_leader(nil)
+
     Election.start_election(node, count)
     {:noreply, state}
   end
@@ -52,9 +61,9 @@ defmodule ConsensusEx.ElectionProcessor do
   def handle_info({:restart_election?, node}, state) do
     send(@self, {:stop_election, node})
 
-    case Monitoring.get_state() do
-      :stopped -> send(@self, {:run_election, node})
-      :running -> send(@self, {:stop_election, node})
+    case LeaderRegistry.get_leader() do
+      nil -> send(@self, {:run_election, node})
+      _ -> send(@self, {:stop_election, node})
     end
 
     {:noreply, state}

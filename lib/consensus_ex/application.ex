@@ -17,7 +17,7 @@ defmodule ConsensusEx.Application do
       worker(ConsensusEx.LeaderRegistry, []),
       worker(ConsensusEx.ElectionCounterRegistry, []),
       worker(ConsensusEx.ElectionProcessor, [Node.self()], restart: :transient),
-      worker(ConsensusEx.Monitoring, [%{}])
+      worker(ConsensusEx.Monitoring, [Node.self()], restart: :transient)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

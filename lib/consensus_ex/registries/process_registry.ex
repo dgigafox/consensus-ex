@@ -24,7 +24,6 @@ defmodule ConsensusEx.ProcessRegistry do
 
   def direct_update_leader(leader) do
     LeaderRegistry.update_leader(leader)
-    Monitoring.run()
   end
 
   def set_leader(node) do
@@ -35,6 +34,12 @@ defmodule ConsensusEx.ProcessRegistry do
 
   def start_election_process(node) do
     ElectionProcessor.start_link(node)
+  catch
+    :exit, _ -> :error
+  end
+
+  def start_monitoring_process() do
+    Monitoring.start_link([])
   catch
     :exit, _ -> :error
   end

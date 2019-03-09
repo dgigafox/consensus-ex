@@ -26,17 +26,19 @@ defmodule ConsensusEx do
     "FINETHANKS"
   end
 
+  @doc """
+  receive({leader node, message, initialized election id})
+  """
   def receive({leader, "IAMTHEKING", 1}) do
     Monitoring.stop()
     direct_update_leader(leader)
+    start_monitoring_process()
   end
 
   def receive({leader, "IAMTHEKING", _}) do
-    IO.inspect(leader, label: "I RECEIVE IAMTHEKING")
     Monitoring.stop()
-
     set_leader(leader)
-    |> IO.inspect(label: "SET_LEADER")
+    start_monitoring_process()
   end
 
   def send_message(recipient, msg, timeout \\ @timeout) do

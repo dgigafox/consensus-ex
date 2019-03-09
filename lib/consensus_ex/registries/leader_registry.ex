@@ -14,7 +14,6 @@ defmodule ConsensusEx.LeaderRegistry do
   end
 
   def update_leader(leader) do
-    Monitoring.stop()
     Agent.update(@self, &Map.put(&1, :leader, leader))
   end
 end
