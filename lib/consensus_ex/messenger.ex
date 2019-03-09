@@ -2,8 +2,12 @@ defmodule ConsensusEx.Messenger do
   @moduledoc """
   Messaging processes and response handlers
   """
+
+  import ConsensusEx.ProcessRegistry
+
   alias ConsensusEx.Election
   alias ConsensusEx.Monitoring
+  alias ConsensusEx.ElectionProcessor
 
   def spawn_task(module, fun, recipient, args, timeout) do
     recipient
@@ -24,7 +28,7 @@ defmodule ConsensusEx.Messenger do
 
   defp handle_response(nil, _recipient, "PING") do
     Monitoring.stop()
-    Election.start_election(Node.self())
+    start_election_process(Node.self())
   end
 
   defp handle_response(resp, _, _), do: resp

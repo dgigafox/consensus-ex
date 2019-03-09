@@ -3,6 +3,8 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
   Helpers for distributed system-related functions
   """
 
+  alias ConsensusEx.NodeRegistry
+
   def get_full_node_name(name) do
     hostname =
       Node.self()
@@ -15,7 +17,15 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
   end
 
   def get_connected_peers(hostname) do
-    :net_adm.names(hostname)
+    # {:ok, NodeRegistry.get_peers(hostname)}
+    peers =
+      hostname
+      |> :net_adm.names()
+      |> elem(1)
+      |> Enum.map(&get_full_node_name_atom(&1))
+      |> Enum.map(&rpc_call(&1, NodeRegistry.get_info()))
+
+    {:ok, peers}
   end
 
   def get_hostname(node) do
@@ -39,5 +49,32 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
     {_, id} = List.keyfind(peers, name, 0)
 
     Enum.filter(peers, fn {_k, v} -> v > id end)
+  end
+
+  defp get_full_node_name_atom({name, _}) do
+    name
+    |> get_full_node_name()
+    |> String.to_atom()
+  end
+
+  defp rpc_call(node, %{} = state) do
+    IO.inspect(node, label: "NODES")
+
+    case :rpc.call(node, NodeRegistry, :get_info, []) do
+      {:badrpc, {:EXIT, {:calling_self, _}}} ->
+        {name_to_charlist(node), state.id}
+
+      remote_state ->
+        {name_to_charlist(node), remote_state.id}
+    end
+    |> IO.inspect(label: "RPC CALL")
+  end
+
+  defp name_to_charlist(node) do
+    node
+    |> Atom.to_string()
+    |> String.split("@")
+    |> hd()
+    |> String.to_charlist()
   end
 end

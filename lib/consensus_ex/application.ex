@@ -14,10 +14,11 @@ defmodule ConsensusEx.Application do
       # worker(ConsensusEx.Worker, [arg1, arg2, arg3]),
       # {ConsensusEx.Monitoring, %{}},
       {Task.Supervisor, name: ConsensusEx.TaskSupervisor},
-      worker(ConsensusEx.EventProcessor, [%{}]),
+      worker(ConsensusEx.NodeRegistry, [[]]),
       worker(ConsensusEx.LeaderRegistry, []),
+      worker(ConsensusEx.ElectionCounterRegistry, []),
       worker(ConsensusEx.ElectionProcessor, [Node.self()], restart: :transient),
-      worker(ConsensusEx.Monitoring, [%{}])
+      worker(ConsensusEx.Monitoring, [Node.self()], restart: :transient)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

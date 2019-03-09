@@ -8,32 +8,23 @@ defmodule ConsensusEx.Monitoring do
   @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
   @refresh_time @timeout
 
-  @spec start_link(map()) :: :ignore | {:error, any()} | {:ok, pid()}
-  def start_link(default) when is_map(default) do
-    default = Map.merge(default, %{state: :stopped, timer_ref: nil})
-
+  def start_link(default) do
     GenServer.start_link(__MODULE__, default, name: @self)
-  end
-
-  def get_state() do
-    GenServer.call(@self, :get_state)
-  end
-
-  def run() do
-    leader = LeaderRegistry.get_leader()
-    send(@self, {:send_message, leader})
   end
 
   def stop() do
     GenServer.cast(@self, :stop)
   end
 
-  def init(init_data) do
-    {:ok, init_data}
-  end
+  def init(_default) do
+    leader = LeaderRegistry.get_leader()
+    state = %{node: leader, timer_ref: nil}
 
-  def handle_call(:get_state, _from, state) do
-    {:reply, state[:state], state}
+    unless leader == Node.self() || leader == nil do
+      send(@self, {:send_message, state.node})
+    end
+
+    {:ok, state}
   end
 
   def handle_info({:send_message, leader} = msg, state) do
@@ -41,18 +32,18 @@ defmodule ConsensusEx.Monitoring do
 
     ConsensusEx.send_message(leader, "PING", @timeout * 4)
 
-    state = %{state | state: :running, timer_ref: timer_ref}
+    state = %{state | timer_ref: timer_ref}
     {:noreply, state}
   end
 
-  def handle_info({_ref, "FINETHANKS"}, state) do
-    Process.exit(self(), :normal)
-    {:noreply, state}
-  end
+  # def handle_info({_ref, "FINETHANKS"}, state) do
+  #   Process.exit(self(), :normal)
+  #   {:noreply, state}
+  # end
 
   def handle_cast(:stop, state) do
     :timer.cancel(state.timer_ref)
-    {:noreply, %{state | state: :stopped}}
+    {:stop, :normal, state}
   end
 
   defp schedule_message(msg) do
