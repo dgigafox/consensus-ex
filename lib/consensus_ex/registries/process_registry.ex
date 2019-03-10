@@ -35,14 +35,16 @@ defmodule ConsensusEx.ProcessRegistry do
   end
 
   def start_election_process(node) do
-    ElectionProcessor.start_link(node)
-  catch
-    :exit, _ -> :error
+    case Process.whereis(ElectionProcessor) do
+      nil -> ElectionProcessor.start_link(node)
+      _ -> send(ElectionProcessor, {:run_election, node})
+    end
   end
 
-  def start_monitoring_process() do
-    Monitoring.start_link([])
-  catch
-    :exit, _ -> :error
+  def start_monitoring_process(leader) do
+    case Process.whereis(Monitoring) do
+      nil -> Monitoring.start_link([])
+      _ -> send(Monitoring, {:send_message, leader})
+    end
   end
 end
