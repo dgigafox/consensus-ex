@@ -40,13 +40,13 @@ For example:
 127.0.0.1       localhost
 255.255.255.255 broadcasthost
 ::1             localhost
-127.0.0.1       consensus.ex
+127.0.0.1       consensus.ex  #add this line
 ```
 
 where consensus.ex is your chosen hostname.
 
-Now we can start our participating nodes. Run a node using `name` flag.
-Let us run 3 nodes for example.
+Now we can start our participating nodes. In the directory of the source code,
+run a node using `name` flag. Let us run 3 nodes for example.
 
 ```elixir
 $ iex --name darren@consensus.ex -S mix
@@ -85,7 +85,7 @@ iex> DistributedSystems.get_connected_peers(hostname)
 {:ok, [{'darren', 4839}, {'meadow', 5146}, {'shaye', 9138}]}
 ```
 
-By trying to stop the iex process of the leader we can see that the other nodes will
+By trying to stop the iex process of the leader, we can see that the other nodes will
 try to elect another leader
 
 ```elixir
