@@ -5,6 +5,12 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
 
   alias ConsensusEx.NodeRegistry
 
+  @doc """
+  Gets the full node name in string
+
+  iex> ConsensusEx.Helpers.DistributedSystems.get_full_node_name('darren')
+  "darren@consensus.ex"
+  """
   def get_full_node_name(name) do
     hostname =
       Node.self()
@@ -16,6 +22,13 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
     name <> "@" <> hostname
   end
 
+  @doc """
+  Gets connected peers including self and corresponding IDs by fetching
+  information through rpc call.
+
+  iex> ConsensusEx.Helpers.DistributedSystems.get_connected_peers(hostname)
+  {:ok, [{'darren', 2134}, {'meadow', 3244}, {'shaye', 8818}, {'foo', 7149}, {'bar', 7899}]}
+  """
   def get_connected_peers(hostname) do
     peers =
       hostname
@@ -27,6 +40,12 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
     {:ok, peers}
   end
 
+  @doc """
+  Gets the hostname of the node
+
+  iex> ConsensusEx.Helpers.DistributedSystems.get_hostname(Node.self())
+  :"consensus.ex"
+  """
   def get_hostname(node) do
     node
     |> Atom.to_string()
@@ -35,6 +54,12 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
     |> String.to_atom()
   end
 
+  @doc """
+  Gets the peers with higher IDs than the current node
+
+  iex> ConsensusEx.Helpers.DistributedSystems.get_higher_id_peers(Node.self())
+  [{'meadow', 3244}, {'shaye', 8818}, {'foo', 7149}, {'bar', 7899}]
+  """
   def get_higher_id_peers(node) do
     {:ok, peers} = get_connected_peers(get_hostname(node))
 

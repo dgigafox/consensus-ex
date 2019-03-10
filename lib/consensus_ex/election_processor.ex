@@ -1,4 +1,8 @@
 defmodule ConsensusEx.ElectionProcessor do
+  @moduledoc """
+  A GenServer implementation that runs and stops election.
+  Ensures that leader can be updated only when election is running.
+  """
   use GenServer
 
   import ConsensusEx.Helpers.DistributedSystems
@@ -56,6 +60,10 @@ defmodule ConsensusEx.ElectionProcessor do
     {:noreply, state}
   end
 
+  @doc """
+  If the current node already has a leader it stops the election
+  but if not, it restarts it.
+  """
   def handle_info({:restart_election?, node}, state) do
     send(@self, {:stop_election, node})
 

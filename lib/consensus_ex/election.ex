@@ -10,12 +10,20 @@ defmodule ConsensusEx.Election do
 
   @timeout Application.get_env(:consensus_ex, :settings)[:timeout]
 
+  @doc """
+  Starts the election by sending ALIVE? to peers with higher IDs
+  """
   def start_election(node, initialized_election_count) do
     node
     |> get_higher_id_peers()
     |> multicast_alive(node, initialized_election_count)
   end
 
+  @doc """
+  Multicasts (sends to multiple known nodes) ALIVE?
+  If it receives FINETHANKS, it wait for the message IAMTHEKING
+  but if it did not, it broadcasts IAMTHEKING to all connected nodes
+  """
   def multicast_alive(receiving_nodes, sending_node, count) when is_list(receiving_nodes) do
     receiving_nodes
     |> ConsensusEx.broadcast_message("ALIVE?")
@@ -26,6 +34,10 @@ defmodule ConsensusEx.Election do
     end
   end
 
+  @doc """
+  Waits for the IAMTHEKING message and verifies if election needs
+  to be restarted or not
+  """
   def wait_for_iamtheking(node) do
     pid = ProcessRegistry.get_pid(ElectionProcessor)
     Process.send_after(pid, {:restart_election?, node}, @timeout)

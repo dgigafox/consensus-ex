@@ -1,12 +1,17 @@
 defmodule ConsensusEx.Messenger do
   @moduledoc """
-  Messaging processes and response handlers
+  Messaging processes and response handlers:
+  * When a node messaged ALIVE? then timed out with no response, returns nil
+  * When a node messaged PING then timed out with no response, starts election
   """
 
   import ConsensusEx.ProcessRegistry
 
   alias ConsensusEx.Monitoring
 
+  @doc """
+  Spawn tasks managed by Task.Supervisor to monitor receive of messages.
+  """
   def spawn_task(module, fun, recipient, args, timeout) do
     recipient
     |> remote_supervisor()

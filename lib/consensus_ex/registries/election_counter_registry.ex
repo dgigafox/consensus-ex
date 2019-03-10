@@ -1,4 +1,7 @@
 defmodule ConsensusEx.ElectionCounterRegistry do
+  @moduledoc """
+  Counts the election initialized or started by the current node
+  """
   use Agent
 
   @self __MODULE__

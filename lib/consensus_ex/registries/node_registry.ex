@@ -1,4 +1,7 @@
 defmodule ConsensusEx.NodeRegistry do
+  @moduledoc """
+  Stores the unique identifier of the current node
+  """
   use Agent
 
   @self __MODULE__

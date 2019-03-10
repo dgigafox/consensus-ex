@@ -1,4 +1,8 @@
 defmodule ConsensusEx.Monitoring do
+  @moduledoc """
+  A GenServer implementation that periodically (every T time) sends a message PING
+  to the leader.
+  """
   use GenServer
 
   alias ConsensusEx.LeaderRegistry
