@@ -31,6 +31,7 @@ defmodule ConsensusEx.Messenger do
 
   defp handle_response(nil, _recipient, "PING") do
     Monitoring.stop()
+
     start_election_process(Node.self())
   end
 
