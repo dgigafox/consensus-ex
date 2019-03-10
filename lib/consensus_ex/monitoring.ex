@@ -1,4 +1,8 @@
 defmodule ConsensusEx.Monitoring do
+  @moduledoc """
+  A GenServer implementation that periodically (every T time) sends a message PING
+  to the leader.
+  """
   use GenServer
 
   alias ConsensusEx.LeaderRegistry
@@ -35,11 +39,6 @@ defmodule ConsensusEx.Monitoring do
     state = %{state | timer_ref: timer_ref}
     {:noreply, state}
   end
-
-  # def handle_info({_ref, "FINETHANKS"}, state) do
-  #   Process.exit(self(), :normal)
-  #   {:noreply, state}
-  # end
 
   def handle_cast(:stop, state) do
     :timer.cancel(state.timer_ref)

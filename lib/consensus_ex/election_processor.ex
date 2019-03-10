@@ -1,4 +1,8 @@
 defmodule ConsensusEx.ElectionProcessor do
+  @moduledoc """
+  A GenServer implementation that runs and stops election.
+  Ensures that leader can be updated only when election is running.
+  """
   use GenServer
 
   import ConsensusEx.Helpers.DistributedSystems
@@ -6,7 +10,6 @@ defmodule ConsensusEx.ElectionProcessor do
   alias ConsensusEx.Election
   alias ConsensusEx.ElectionCounterRegistry
   alias ConsensusEx.LeaderRegistry
-  alias ConsensusEx.Monitoring
 
   @self __MODULE__
 
@@ -24,8 +27,6 @@ defmodule ConsensusEx.ElectionProcessor do
     hostname = get_hostname(state.node)
     {:ok, peers} = :net_adm.names(hostname)
 
-    IO.inspect(peers, label: "PEERS")
-
     case length(peers) do
       1 -> :ok
       _ -> send(@self, {:run_election, state.node})
@@ -39,7 +40,6 @@ defmodule ConsensusEx.ElectionProcessor do
   end
 
   def handle_cast({:receive_iamtheking, leader}, state) do
-    IO.inspect(leader, label: "CAST LEADER")
     LeaderRegistry.update_leader(leader)
     {:noreply, state}
   end
@@ -60,6 +60,10 @@ defmodule ConsensusEx.ElectionProcessor do
     {:noreply, state}
   end
 
+  @doc """
+  If the current node already has a leader it stops the election
+  but if not, it restarts it.
+  """
   def handle_info({:restart_election?, node}, state) do
     send(@self, {:stop_election, node})
 

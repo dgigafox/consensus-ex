@@ -12,9 +12,8 @@ defmodule ConsensusEx.Application do
       supervisor(ConsensusExWeb.Endpoint, []),
       # Start your own worker by calling: ConsensusEx.Worker.start_link(arg1, arg2, arg3)
       # worker(ConsensusEx.Worker, [arg1, arg2, arg3]),
-      # {ConsensusEx.Monitoring, %{}},
       {Task.Supervisor, name: ConsensusEx.TaskSupervisor},
-      worker(ConsensusEx.NodeRegistry, [[]]),
+      worker(ConsensusEx.NodeRegistry, []),
       worker(ConsensusEx.LeaderRegistry, []),
       worker(ConsensusEx.ElectionCounterRegistry, []),
       worker(ConsensusEx.ElectionProcessor, [Node.self()], restart: :transient),

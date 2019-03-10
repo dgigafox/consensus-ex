@@ -1,5 +1,7 @@
 defmodule ConsensusEx.ProcessRegistry do
-  @moduledoc false
+  @moduledoc """
+  Gives access to stored processes and actions to start or stop them.
+  """
 
   import Process
 

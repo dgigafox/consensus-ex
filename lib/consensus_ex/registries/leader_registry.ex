@@ -1,7 +1,8 @@
 defmodule ConsensusEx.LeaderRegistry do
+  @moduledoc """
+  Remembers the leader to be monitored
+  """
   use Agent
-
-  alias ConsensusEx.Monitoring
 
   @self __MODULE__
 
