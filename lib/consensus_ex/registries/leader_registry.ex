@@ -1,8 +1,6 @@
 defmodule ConsensusEx.LeaderRegistry do
   use Agent
 
-  alias ConsensusEx.Monitoring
-
   @self __MODULE__
 
   def start_link do

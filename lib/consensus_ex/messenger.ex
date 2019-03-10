@@ -5,9 +5,7 @@ defmodule ConsensusEx.Messenger do
 
   import ConsensusEx.ProcessRegistry
 
-  alias ConsensusEx.Election
   alias ConsensusEx.Monitoring
-  alias ConsensusEx.ElectionProcessor
 
   def spawn_task(module, fun, recipient, args, timeout) do
     recipient

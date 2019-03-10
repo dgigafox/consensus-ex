@@ -21,7 +21,6 @@ defmodule ConsensusEx do
   end
 
   def receive("ALIVE?") do
-    IO.puts("I RECEIVED ALIVE")
     Monitoring.stop()
 
     case Process.whereis(ElectionProcessor) do
@@ -36,14 +35,12 @@ defmodule ConsensusEx do
   receive({leader node, message, initialized election id})
   """
   def receive({leader, "IAMTHEKING", 1}) do
-    IO.puts("I RECEIVED I AM THE KING FIRST")
     Monitoring.stop()
     direct_update_leader(leader)
     start_monitoring_process()
   end
 
   def receive({leader, "IAMTHEKING", _}) do
-    IO.puts("I RECEIVED I AM THE KING")
     Monitoring.stop()
     set_leader(leader)
     start_monitoring_process()

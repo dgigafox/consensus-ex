@@ -36,11 +36,6 @@ defmodule ConsensusEx.Monitoring do
     {:noreply, state}
   end
 
-  # def handle_info({_ref, "FINETHANKS"}, state) do
-  #   Process.exit(self(), :normal)
-  #   {:noreply, state}
-  # end
-
   def handle_cast(:stop, state) do
     :timer.cancel(state.timer_ref)
     {:stop, :normal, state}

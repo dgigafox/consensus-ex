@@ -6,7 +6,6 @@ defmodule ConsensusEx.ElectionProcessor do
   alias ConsensusEx.Election
   alias ConsensusEx.ElectionCounterRegistry
   alias ConsensusEx.LeaderRegistry
-  alias ConsensusEx.Monitoring
 
   @self __MODULE__
 
@@ -24,8 +23,6 @@ defmodule ConsensusEx.ElectionProcessor do
     hostname = get_hostname(state.node)
     {:ok, peers} = :net_adm.names(hostname)
 
-    IO.inspect(peers, label: "PEERS")
-
     case length(peers) do
       1 -> :ok
       _ -> send(@self, {:run_election, state.node})
@@ -39,7 +36,6 @@ defmodule ConsensusEx.ElectionProcessor do
   end
 
   def handle_cast({:receive_iamtheking, leader}, state) do
-    IO.inspect(leader, label: "CAST LEADER")
     LeaderRegistry.update_leader(leader)
     {:noreply, state}
   end

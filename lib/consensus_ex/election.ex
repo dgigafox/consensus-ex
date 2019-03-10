@@ -13,7 +13,6 @@ defmodule ConsensusEx.Election do
   def start_election(node, initialized_election_count) do
     node
     |> get_higher_id_peers()
-    |> IO.inspect(label: "HIGHER ID PEERS")
     |> multicast_alive(node, initialized_election_count)
   end
 
@@ -36,10 +35,7 @@ defmodule ConsensusEx.Election do
   Stops the election process and broadcast IAMTHEKING message
   """
   def broadcast_iamtheking(node, count) do
-    IO.puts("I WILL BROADCAST IAMTHEKING #{node}")
-
     {:ok, peers} = get_connected_peers(get_hostname(node))
-    IO.inspect(peers, label: "PEERS TO BROADCAST IAMTHEKING")
     ConsensusEx.broadcast_message(peers, {node, "IAMTHEKING", count})
     send(ElectionProcessor, {:stop_election, node})
   end

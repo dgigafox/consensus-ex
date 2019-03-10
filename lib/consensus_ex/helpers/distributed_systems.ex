@@ -17,7 +17,6 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
   end
 
   def get_connected_peers(hostname) do
-    # {:ok, NodeRegistry.get_peers(hostname)}
     peers =
       hostname
       |> :net_adm.names()
@@ -58,8 +57,6 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
   end
 
   defp rpc_call(node, %{} = state) do
-    IO.inspect(node, label: "NODES")
-
     case :rpc.call(node, NodeRegistry, :get_info, []) do
       {:badrpc, {:EXIT, {:calling_self, _}}} ->
         {name_to_charlist(node), state.id}
@@ -67,7 +64,6 @@ defmodule ConsensusEx.Helpers.DistributedSystems do
       remote_state ->
         {name_to_charlist(node), remote_state.id}
     end
-    |> IO.inspect(label: "RPC CALL")
   end
 
   defp name_to_charlist(node) do
