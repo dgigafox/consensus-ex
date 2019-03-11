@@ -43,7 +43,8 @@ For example:
 127.0.0.1       consensus.ex  #add this line
 ```
 
-where consensus.ex is your chosen hostname.
+where consensus.ex is your chosen hostname. Note: Be sure to name your host with a dot and
+some extension (i.e. `name.extension` format) like the one above.
 
 Now we can start our participating nodes. In the directory of the source code,
 run a node using `name` flag. Let us run 3 nodes for example.
@@ -56,8 +57,7 @@ $ iex --name shaye@consensus.ex -S mix
 $ iex --name meadow@consensus.ex -S mix
 ```
 
-No need to run any command to join the cluster as they will automatically join
-as long as they have the same hostnames.
+No need to run any command to join the cluster.
 
 Now we can ask each of them who is their leaders. By typing the following
 command on each node:
